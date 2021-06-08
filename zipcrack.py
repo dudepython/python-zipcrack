@@ -1,40 +1,54 @@
+import itertools
+import time
 import zipfile
+start = time.time()
 
+def permutation_with_repeats(seq, key):
+    """ 
+    generator that produces all permutations of length key 
+    of the elements in  seq.
+    seq = list('abc'); key = 4
+    >>> aaaa aaab aaac aaba aabb aabc aaca aacb...
+    seq = list('abcdefghijklmnopqrstuvwzyz'); key = 2
+    >>> aa ab ac ad ae af ag ah ai aj ak al...
+    """
+    for _ in  itertools.product(seq, repeat=key):
+        yield ''.join(_)
 
-def crack_password(password_list, obj):
-	# tracking line no. at which password is found
-	idx = 0
-
-	# open file in read byte mode only as "rockyou.txt"
-	# file contains some special characters and hence
-	# UnicodeDecodeError will be generated
-	with open(password_list, 'rb') as file:
-		for line in file:
-			for word in line.split():
-				try:
-					idx += 1
-					obj.extractall(pwd=word)
-					print("Password found at line", idx)
-					print("Password is", word.decode())
-					return True
-				except:
-					continue
-	return False
-
-
-password_list = "rockyou.txt"
-
-zip_file = str(input("enter file name"))
-
-# ZipFile object initialised
+seq = list('abcdefghijklmnopqrstuvwxyz1234567890')
+key = 1
+zip_file = str(input("enter file name with extension (file must be in same location as code)"))
+cnt=0 
+f = open("passgen.txt", "w")
+a = permutation_with_repeats(seq, key) # seq and key of arbitrary size > 0
+pguess = str("")
 obj = zipfile.ZipFile(zip_file)
+while key<= 7:
+    while True:
+        try:
+            pguess = (next(a))
+            cnt+=1
+            try:
+                obj.extractall(pwd=pguess.encode())
+                print (pguess)
+                print("Password found at try ", cnt)
+                print("Password is", pguess)
+            except:
+                continue
+                
 
-# count of number of words present in file
-cnt = len(list(open(password_list, "rb")))
+        except StopIteration:
+            key+=1
+            print("key is now",key,)
+            end = time.time()
+            print ("time took for generation =",end-start)
+            a = permutation_with_repeats(seq, key)
+            break
 
-print("There are total", cnt,
-	"number of passwords to test")
 
-if crack_password(password_list, obj) == False:
-	print("Password not found in this file")
-crack_password(password_list, obj)
+end = time.time()
+print ("time took for generation =",end-start)
+print(pguess)
+
+print("no of permutaions generated =",cnt)
+f.close() 
